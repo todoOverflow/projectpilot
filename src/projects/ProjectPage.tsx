@@ -7,15 +7,20 @@ export default function ProjectPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     setLoading(true);
     projectAPI
-      .get(1)
+      .get(currentPage)
       .then((data) => {
         setError(undefined);
         setLoading(false);
-        setProjects(data);
+        if (currentPage === 1) {
+          setProjects(data);
+        } else {
+          setProjects((projects) => [...projects, ...data]);
+        }
       })
       .catch((error) => {
         setLoading(false);
@@ -23,7 +28,7 @@ export default function ProjectPage() {
           setError(error.message);
         }
       });
-  }, []);
+  }, [currentPage]);
 
   // useEffect(() => {
   //   async function loadProjects() {
@@ -51,6 +56,10 @@ export default function ProjectPage() {
     setProjects(updatedProjects);
   }
 
+  function handleMoreClick() {
+    setCurrentPage((currentPage) => currentPage + 1);
+  }
+
   return (
     <>
       <h1>Projects</h1>
@@ -67,6 +76,17 @@ export default function ProjectPage() {
         </div>
       )}
       <ProjectList projects={projects} onSave={handleSave} />
+      {!loading && !error && (
+        <div className="row">
+          <div className="col-sm-12">
+            <div className="button-group fluid">
+              <button className="button default" onClick={handleMoreClick}>
+                More...
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {loading && (
         <div className="center-page">
           <span className="spinner primary"></span>
