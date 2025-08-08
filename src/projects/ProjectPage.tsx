@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Project } from "./Project";
+import { Project } from "./Project";
 import ProjectList from "./ProjectList";
 import { projectAPI } from "./projectAPI";
 
@@ -50,10 +50,23 @@ export default function ProjectPage() {
 
   function handleSave(project: Project) {
     console.log("Saving project: ", project);
-    const updatedProjects = projects.map((p) =>
-      p.id === project.id ? project : p
-    );
-    setProjects(updatedProjects);
+    // const updatedProjects = projects.map((p) =>
+    //   p.id === project.id ? project : p
+    // );
+    // setProjects(updatedProjects);
+    projectAPI
+      .put(project)
+      .then((updatedProject) => {
+        const updatedProjects = projects.map((p) => {
+          return p.id === project.id ? new Project(updatedProject) : p;
+        });
+        setProjects(updatedProjects);
+      })
+      .catch((error) => {
+        if (error instanceof Error) {
+          setError(error.message);
+        }
+      });
   }
 
   function handleMoreClick() {
