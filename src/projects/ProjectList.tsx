@@ -10,6 +10,7 @@ interface ProjectListProps {
 
 function ProjectList({ projects, onSave }: ProjectListProps) {
   const [projectBeingEdit, setProjectBeingEdit] = useState({});
+
   function handleEditClick(project: Project) {
     setProjectBeingEdit(project);
     console.log(project);
