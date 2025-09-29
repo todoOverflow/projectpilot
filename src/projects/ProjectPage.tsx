@@ -1,111 +1,58 @@
 import { useEffect, useState } from "react";
-import { Project } from "./Project";
-import ProjectList from "./ProjectList";
 import { projectAPI } from "./projectAPI";
+import ProjectDetail from "./ProjectDetail";
+import { Project } from "./Project";
+import { useParams } from "react-router";
 
-export default function ProjectPage() {
-  const [projects, setProjects] = useState<Project[]>([]);
+function ProjectPage() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | undefined>(undefined);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [project, setProject] = useState<Project | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const params = useParams();
+  const id = Number(params.id);
 
   useEffect(() => {
     setLoading(true);
     projectAPI
-      .get(currentPage)
+      .find(id)
       .then((data) => {
-        setError(undefined);
+        setProject(data);
         setLoading(false);
-        if (currentPage === 1) {
-          setProjects(data);
-        } else {
-          setProjects((projects) => [...projects, ...data]);
-        }
       })
-      .catch((error) => {
+      .catch((e) => {
+        setError(e);
         setLoading(false);
-        if (error instanceof Error) {
-          setError(error.message);
-        }
       });
-  }, [currentPage]);
-
-  // useEffect(() => {
-  //   async function loadProjects() {
-  //     setLoading(true);
-  //     try {
-  //       const data = await projectAPI.get(1);
-  //       setError(undefined);
-  //       setProjects(data);
-  //     } catch (error) {
-  //       if (error instanceof Error) {
-  //         setError(error.message);
-  //       }
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   }
-  //   loadProjects();
-  // }, []);
-
-  function handleSave(project: Project) {
-    console.log("Saving project: ", project);
-    // const updatedProjects = projects.map((p) =>
-    //   p.id === project.id ? project : p
-    // );
-    // setProjects(updatedProjects);
-    projectAPI
-      .put(project)
-      .then((updatedProject) => {
-        const updatedProjects = projects.map((p) => {
-          return p.id === project.id ? new Project(updatedProject) : p;
-        });
-        setProjects(updatedProjects);
-      })
-      .catch((error) => {
-        if (error instanceof Error) {
-          setError(error.message);
-        }
-      });
-  }
-
-  function handleMoreClick() {
-    setCurrentPage((currentPage) => currentPage + 1);
-  }
+  }, [id]);
 
   return (
-    <>
-      <h1>Projects</h1>
-      {error && (
-        <div className="row">
-          <div className="card large error">
-            <section>
-              <p>
-                <span className="icon-alert inverse"></span>
-                {error}
-              </p>
-            </section>
+    <div>
+      <>
+        <h1>Project Detail</h1>
+
+        {loading && (
+          <div className="center-page">
+            <span className="spinner primary"></span>
+            <p>Loading...</p>
           </div>
-        </div>
-      )}
-      <ProjectList projects={projects} onSave={handleSave} />
-      {!loading && !error && (
+        )}
+
         <div className="row">
-          <div className="col-sm-12">
-            <div className="button-group fluid">
-              <button className="button default" onClick={handleMoreClick}>
-                More...
-              </button>
+          {error && (
+            <div className="card large error">
+              <section>
+                <p>
+                  <span className="icon-alert inverse "></span> {error}
+                </p>
+              </section>
             </div>
-          </div>
+          )}
         </div>
-      )}
-      {loading && (
-        <div className="center-page">
-          <span className="spinner primary"></span>
-          <p>Loading...</p>
-        </div>
-      )}
-    </>
+
+        {project && <ProjectDetail project={project} />}
+      </>
+    </div>
   );
 }
+
+export default ProjectPage;
